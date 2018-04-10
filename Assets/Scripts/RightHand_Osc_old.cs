@@ -5,17 +5,16 @@ using UnityEngine;
 namespace VRTK
 {
 
-    public class RightHand_Osc : MonoBehaviour
+    public class RightHand_Osc_old : MonoBehaviour
     {
 
         public OSC osc;
         public VRTK_ControllerEvents rightController;
 
-        private int triggerStatus = 0;
-        private float touchpadAngle = 10.0f;
+        private bool triggerPressed = false;
+        private int triggerBoolValue = 0;
+        private float attack = 10;
         private int gripStatus = 0;
-		private int touchpadStatus = 0;
-		private int buttonTwoStatus = 0;
 
         // Use this for initialization
         void Start()
@@ -23,41 +22,36 @@ namespace VRTK
 
         }
 
+        // Update is called once per frame
         void Update()
         {
+            if (triggerPressed)
+            {
+                triggerBoolValue = 1;
+            }else
+            {
+                triggerBoolValue = 0;
+            }
+
             OscMessage message = new OscMessage();
 
-            message = new OscMessage();
+            /*message = new OscMessage();
             message.address = "/RightHand";
-
-			///Output 1 2 3 : position
             message.values.Add(transform.position.x);
             message.values.Add(transform.position.y);
             message.values.Add(transform.position.z);
+            message.values.Add(triggerBoolValue);
+            message.values.Add(attack);
+            message.values.Add(transform.rotation.x);
+            osc.Send(message);*/
 
-			///Output 4 5 6 : rotation
-			message.values.Add(transform.rotation.x);
-			message.values.Add(transform.rotation.y);
-			message.values.Add(transform.rotation.z);
-
-			///Output 7 : trigger
-            message.values.Add(triggerStatus);
-
-			///Output 8 : grip
-			message.values.Add(gripStatus); 
-
-			///Output 9 : touchpad
-			message.values.Add(touchpadStatus);
-
-			//Output 10 : touchpad angle
-			message.values.Add(touchpadAngle);
-
-			//Output 11 : button two (top)
-			message.values.Add(buttonTwoStatus);
-            
+            message = new OscMessage();
+            message.address = "/RightHandNew";
+            message.values.Add(gripStatus);
+            message.values.Add(transform.position.x);
             osc.Send(message);
 
-		}
+        }
 
 
 
@@ -84,14 +78,8 @@ namespace VRTK
                 rightController.TouchpadAxisChanged += RightController_TouchpadAxisChanged;
                 rightController.GripReleased += RightController_GripReleased;
                 rightController.GripPressed += RightController_GripPressed;
-				rightController.TouchpadPressed += RightController_TouchpadPressed;
-				rightController.TouchpadReleased += RightController_TouchpadReleased;
-				rightController.ButtonTwoPressed += RightController_ButtonTwoPressed;
-				rightController.ButtonTwoReleased += RightController_ButtonTwoReleased;
             }
         }
-
-		//__ Grip Status _//
 
         private void RightController_GripPressed(object sender, ControllerInteractionEventArgs e)
         {
@@ -105,49 +93,23 @@ namespace VRTK
             Debug.Log("grip released");
         }
 
-		//_ Touchpad status _//
-
         private void RightController_TouchpadAxisChanged(object sender, ControllerInteractionEventArgs e)
         {
-			touchpadAngle = e.touchpadAngle;
+            attack = e.touchpadAngle; //map(0, 360, 0, 30, e.touchpadAngle);
         }
-
-		private void RightController_TouchpadPressed(object sender, ControllerInteractionEventArgs e)
-		{
-			touchpadStatus = 1;
-		}
-
-		private void RightController_TouchpadReleased(object sender, ControllerInteractionEventArgs e)
-		{
-			touchpadStatus = 0;
-		}
-
-		//_ Trigger status _//
 
         private void RightController_TriggerUnclicked(object sender, ControllerInteractionEventArgs e)
         {
-            triggerStatus = 0;
+            triggerPressed = false;
+            //Debug.Log("Relased");
         }
 
         private void RightController_TriggerClicked(object sender, ControllerInteractionEventArgs e)
         {
-            triggerStatus = 1;
+            triggerPressed = true;
+            //Debug.Log("Clicked Right hand");
         }
 
-		//_ Button two _//
-
-		private void RightController_ButtonTwoPressed(object sender, ControllerInteractionEventArgs e)
-		{
-			buttonTwoStatus = 1;
-		}
-
-		private void RightController_ButtonTwoReleased(object sender, ControllerInteractionEventArgs e)
-		{
-			buttonTwoStatus = 0;
-		}
-
-
-		//_ Usefull function _//
 
         float map(float a, float b, float c, float d, float input)
         {
